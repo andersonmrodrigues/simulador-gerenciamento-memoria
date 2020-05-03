@@ -1,4 +1,4 @@
-# Trabalho Final da Disciplina de Programação Orientada a Objetos II
+# Trabalho Final da Sistemas Operacionais
 
 # Desenvolvido por:
 - Anderson Maik Rodrigues
