@@ -1,4 +1,4 @@
-# Trabalho Final da Sistemas Operacionais
+# Trabalho Final da disciplina Sistemas Operacionais
 
 # Desenvolvido por:
 - Anderson Maik Rodrigues
