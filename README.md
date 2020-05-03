@@ -1,3 +1,9 @@
+# Trabalho Final da Disciplina de Programação Orientada a Objetos II
+
+# Desenvolvido por:
+- Anderson Maik Rodrigues
+- Jean Matheus Backes Kistenmacher
+
 # Objetivo
 
 Implementar um simulador de gerenciamento de memória.
