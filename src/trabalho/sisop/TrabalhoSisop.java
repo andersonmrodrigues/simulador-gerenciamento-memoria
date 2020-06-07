@@ -5,6 +5,8 @@
  */
 package trabalho.sisop;
 
+import java.util.Scanner;
+
 /**
  *
  * @author Anderson Rodrigues
@@ -16,7 +18,18 @@ public class TrabalhoSisop {
      */
     public static void main(String[] args) {
         try {
-            Memoria memoria = new Memoria();
+            System.out.println("Escolha o Algoritmo de Gerenciamento de Partições: ");
+            System.out.println("1: FIRST-FIT");
+            System.out.println("2: BEST-FIT");
+            System.out.println("3: WORST-FIT");
+            System.out.println("4: CIRCULAR-FIT");
+            Scanner in = new Scanner(System.in);
+            int valorDoConsole = in.nextInt();
+            if (valorDoConsole > 4 || valorDoConsole < 1) {
+                System.out.println("Algoritmo inválido!");
+            } else {
+                Memoria memoria = new Memoria(valorDoConsole);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
