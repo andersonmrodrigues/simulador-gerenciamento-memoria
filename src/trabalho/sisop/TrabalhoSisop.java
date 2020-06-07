@@ -15,7 +15,11 @@ public class TrabalhoSisop {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        // TODO code application logic here
+        try {
+            Memoria memoria = new Memoria();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-    
+
 }
