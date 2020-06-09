@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
-import java.util.Scanner;
 
 /**
  *
@@ -36,6 +35,11 @@ public class Memoria {
     private List<Posicao> memoriaList;
     private Integer inicio;
     private Integer fim;
+    private BufferedReader brArqMemoria;
+    private String content;
+    private StringBuilder sb;
+    private FileWriter writer;
+    private FileReader frMemoria;
 
     Memoria(Integer algoritmo) throws IOException {
         memoriaList = new ArrayList<>(Collections.nCopies(1000000, null));
@@ -76,6 +80,7 @@ public class Memoria {
         String linha = "";
         String divisor = "\\|";
         br = new BufferedReader(new FileReader(CAMINHO + NOME_ARQUIVO_PROCESSOS));
+        String nmArquivoMemoria = CAMINHO + NOME_ARQUIVO_MEMORIA;
         preencheInicioFimDaMemoria();
         while ((linha = br.readLine()) != null) {
             String[] data = linha.split(divisor);
@@ -93,21 +98,17 @@ public class Memoria {
                 if (data[i].equals("-")) {
                     continue;
                 }
-                if (data[i].startsWith("sw")) { // JA ESTA PREENCHENDO NA LISTA E NO ARQUIVO NA POSICAO
+                if (data[i].startsWith("sw")) {
                     String[] instrucao = data[i].split(",");
                     String[] palavra = instrucao[1].split("");
                     int pos = Integer.valueOf(instrucao[2]) - 1;
                     if ((processo.getPosInicio() + pos + 3) > processo.getPosFim()) {
                         //ACESSO ILEGAL
                     } else {
-                        String nmArquivoMemoria = CAMINHO + NOME_ARQUIVO_MEMORIA;
-                        FileReader fr = new FileReader(CAMINHO + NOME_ARQUIVO_MEMORIA);
-                        BufferedReader brArqMemoria = new BufferedReader(fr);
-                        String content = brArqMemoria.readLine();
+                        carregaVariaveisParaLeituraAndEscrita();
                         Integer insereApartirDe = processo.getPosInicio() + pos;
                         Integer acabaEm = insereApartirDe + 3;
                         int cont = 0;
-                        StringBuilder sb = new StringBuilder(content);
                         for (int j = insereApartirDe; j <= acabaEm; j++) {
                             Posicao p = memoriaList.get(j);
                             p.setValue(palavra[cont]);
@@ -116,13 +117,17 @@ public class Memoria {
                             cont++;
                         }
                         br.close();
-                        FileWriter writer = new FileWriter(nmArquivoMemoria);
+                        writer = new FileWriter(nmArquivoMemoria);
                         writer.write(sb.toString());
                         writer.close();
                     }
-                }
-                if (data[i].startsWith("lw")) {
-                    // TO DO - LÓGICA DO LOAD WORD
+                } else if (data[i].startsWith("lw")) {
+                    String[] instrucao = data[i].split(",");
+                    int pos = Integer.valueOf(instrucao[1]);
+                    Integer posicaoNoArq = processo.getPosInicio() + pos;
+                    carregaVariaveisParaLeituraAndEscrita();
+                    String valorNaPosicao = memoriaList.get(posicaoNoArq).getValue(); // COLOCAR LÓGICA DE GERAR LOG OU PRINTAR NO CONSOLE
+                    String valorNaPosicaoNoArq = String.valueOf(sb.charAt(Integer.valueOf(valorNaPosicao)));
                 }
             }
             this.fifo.add(processo);
@@ -138,14 +143,11 @@ public class Memoria {
         inicio = str.lastIndexOf("x") + 1; // ONDE ACABA O SISTEMA OPERACIONAL NA MEMORIA + 1 = ONDE PODE COMECAR A ESCRITA DOS PROCESSOS
         fim = data.length;
     }
-}
 
-//    File file = new File("abhishek.txt");
-//    Scanner scanner = new Scanner(file).useDelimiter("\n");
-//    String line = scanner.next();
-//    String newLine = line.substring(0, 5) + "Abhishek" + line.substring(5);
-//    FileWriter writer = new FileWriter(file);
-//
-//    writer.write (newLine);
-//    writer.close ();
-//}
+    private void carregaVariaveisParaLeituraAndEscrita() throws IOException {
+        frMemoria = new FileReader(CAMINHO + NOME_ARQUIVO_MEMORIA);
+        brArqMemoria = new BufferedReader(frMemoria);
+        content = brArqMemoria.readLine();
+        sb = new StringBuilder(content);
+    }
+}

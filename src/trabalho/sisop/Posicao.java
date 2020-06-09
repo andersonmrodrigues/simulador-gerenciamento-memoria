@@ -16,6 +16,7 @@ public class Posicao {
 
     Posicao(String pid) {
         this.pid = pid;
+        this.value = "";
     }
 
     public String getPid() {
