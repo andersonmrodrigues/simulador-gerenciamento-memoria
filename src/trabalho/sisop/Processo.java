@@ -21,6 +21,14 @@ public class Processo {
         this.instrucao = "";
     }
 
+    Processo(String pid, Integer qtMem, Integer inicio, Integer fim) {
+        this.pid = pid;
+        this.qtMem = qtMem;
+        this.posInicio = inicio;
+        this.posFim = fim;
+        this.instrucao = "";
+    }
+
     public String getPid() {
         return pid;
     }
