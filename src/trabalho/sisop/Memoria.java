@@ -14,6 +14,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
@@ -31,7 +32,7 @@ public class Memoria {
     public static final Integer BEST_FIT = 2;
     public static final Integer WORST_FIT = 3;
     public static final Integer CIRCULAR_FIT = 4;
-    private Queue fifo;
+    private Queue<Processo> fifo;
     private List<Posicao> memoriaList;
     private Integer inicio;
     private Integer fim;
@@ -42,6 +43,7 @@ public class Memoria {
     private FileReader frMemoria;
 
     Memoria(Integer algoritmo) throws IOException {
+        fifo = new LinkedList<>();
         memoriaList = new ArrayList<>(Collections.nCopies(1000000, null));
         boolean existe = verificaGeraArquivo();
         if (!existe) {
@@ -69,7 +71,7 @@ public class Memoria {
 
     private String geraDados() {
         String data = "";
-        for (int i = 0; i < 1000000; i++) {
+        for (int i = 1; i <= 1000000; i++) {
             data += i < 500000 ? "x" : " ";
         }
         return data;
@@ -82,28 +84,45 @@ public class Memoria {
         br = new BufferedReader(new FileReader(CAMINHO + NOME_ARQUIVO_PROCESSOS));
         String nmArquivoMemoria = CAMINHO + NOME_ARQUIVO_MEMORIA;
         preencheInicioFimDaMemoria();
+        System.out.println("------------");
         while ((linha = br.readLine()) != null) {
             String[] data = linha.split(divisor);
             Processo processo = new Processo();
             processo.setPid(data[0]);
             processo.setQtMem(Integer.valueOf(data[1]));
             processo.setPosInicio(inicio);
-            processo.setPosFim(inicio + processo.getQtMem());
+            processo.setPosFim(inicio + processo.getQtMem() - 1);
+            System.out.println("MEMORIA ALOCADA PARA O PROCESSO " + processo.getPid()
+                    + " - INICIO:" + (processo.getPosInicio() + 1) + " | FIM:" + (processo.getPosFim() + 1));
             for (int i = inicio; i <= processo.getPosFim(); i++) {
                 Posicao p = new Posicao(processo.getPid());
                 memoriaList.set(i, p);
             }
             inicio = processo.getPosFim() + 1;
+            boolean es = false;
+            boolean acessoIlegal = false;
             for (int i = 2; i < data.length; i++) {
                 if (data[i].equals("-")) {
                     continue;
                 }
-                if (data[i].startsWith("sw")) {
+                if (es) {
+                    String instrucao = processo.getInstrucao().isEmpty() ? data[i] : "|" + data[i];
+                    processo.setInstrucao(processo.getInstrucao() + instrucao);
+                    continue;
+                }
+                if (data[i].equals("ES")) {
+                    es = true;
+                    System.out.println("ENTRADA/SAIDA DO PROCESSO " + processo.getPid() + "\nENVIADO PARA O FIM DA FILA");
+                } else if (data[i].startsWith("sw")) {
                     String[] instrucao = data[i].split(",");
                     String[] palavra = instrucao[1].split("");
                     int pos = Integer.valueOf(instrucao[2]) - 1;
                     if ((processo.getPosInicio() + pos + 3) > processo.getPosFim()) {
-                        //ACESSO ILEGAL
+                        //ACESSO ILEGAL TO DO
+                        System.out.println("ACESSO ILEGAL DO PROCESSO " + processo.getPid()
+                                + " NA POSICAO " + (processo.getPosInicio() + pos + 1) + " LACUNA DE "
+                                + processo.getQtMem() + "bits\nPROCESSO ENCERRADO");
+                        break;
                     } else {
                         carregaVariaveisParaLeituraAndEscrita();
                         Integer insereApartirDe = processo.getPosInicio() + pos;
@@ -116,21 +135,41 @@ public class Memoria {
                             sb.setCharAt(j, palavra[cont].charAt(0));
                             cont++;
                         }
-                        br.close();
+                        brArqMemoria.close();
                         writer = new FileWriter(nmArquivoMemoria);
                         writer.write(sb.toString());
                         writer.close();
                     }
+                    System.out.println("STOREWORD DO PROCESSO " + processo.getPid()
+                            + " DA PALAVRA " + instrucao[1] + " NA POSICAO "
+                            + (processo.getPosInicio() + pos + 1));
+
                 } else if (data[i].startsWith("lw")) {
                     String[] instrucao = data[i].split(",");
                     int pos = Integer.valueOf(instrucao[1]);
                     Integer posicaoNoArq = processo.getPosInicio() + pos;
                     carregaVariaveisParaLeituraAndEscrita();
-                    String valorNaPosicao = memoriaList.get(posicaoNoArq).getValue(); // COLOCAR LÓGICA DE GERAR LOG OU PRINTAR NO CONSOLE
+                    String valorNaPosicao = memoriaList.get(posicaoNoArq).getValue();
                     String valorNaPosicaoNoArq = String.valueOf(sb.charAt(Integer.valueOf(valorNaPosicao)));
+                    System.out.println("LOADWORD DO PROCESSO " + processo.getPid()
+                            + " DA POSICAO " + posicaoNoArq);
+
+                }
+                if (i == (data.length - 1) && !es) {
+                    System.out.println("PROCESSO ENCERRADO " + processo.getPid()
+                            + "\nLACUNA DE " + processo.getQtMem() + "bits");
+                    //TODO
+                    break;
                 }
             }
-            this.fifo.add(processo);
+            if (es) {
+                this.fifo.add(processo);
+            }
+            System.out.println("------------");
+        }
+        String acabou = "";
+        for (Processo processo : fifo) {
+            System.out.println("PROCESSO " + processo.getPid() + " " + processo.getPosInicio() + " " + processo.getPosFim());
         }
     }
 
@@ -140,7 +179,7 @@ public class Memoria {
         String str = br.readLine();
         sb.append(str);
         char[] data = str.toCharArray();
-        inicio = str.lastIndexOf("x") + 1; // ONDE ACABA O SISTEMA OPERACIONAL NA MEMORIA + 1 = ONDE PODE COMECAR A ESCRITA DOS PROCESSOS
+        inicio = str.lastIndexOf("x") + 1;
         fim = data.length;
     }
 

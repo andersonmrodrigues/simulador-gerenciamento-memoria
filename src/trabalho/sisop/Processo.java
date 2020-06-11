@@ -15,6 +15,11 @@ public class Processo {
     private Integer qtMem;
     private Integer posInicio;
     private Integer posFim;
+    private String instrucao;
+
+    Processo() {
+        this.instrucao = "";
+    }
 
     public String getPid() {
         return pid;
@@ -46,6 +51,14 @@ public class Processo {
 
     public void setQtMem(Integer qtMem) {
         this.qtMem = qtMem;
+    }
+
+    public String getInstrucao() {
+        return instrucao;
+    }
+
+    public void setInstrucao(String instrucao) {
+        this.instrucao = instrucao;
     }
 
 }
