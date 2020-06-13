@@ -25,6 +25,7 @@ import java.util.Queue;
 public class Memoria {
 
     private static final String NOME_ARQUIVO_MEMORIA = "memoria.txt";
+    private static final String NOME_ARQUIVO_LOG = "log.txt";
     private static final String NOME_ARQUIVO_PROCESSOS1 = "processos1.txt";
     private static final String NOME_ARQUIVO_PROCESSOS2 = "processos2.txt";
     private static final String CAMINHO = "D:\\Projetos\\simulador-gerenciamento-memoria\\";
@@ -35,6 +36,8 @@ public class Memoria {
     private Integer inicio;
     private Integer fim;
     private Integer algSelecionado;
+    private Integer lacunaPos;
+    private String log;
     private String content;
     private String nmArquivoMemoria;
     private BufferedReader brArqMemoria;
@@ -46,12 +49,14 @@ public class Memoria {
     private List<Posicao> memoriaList;
     private Queue<Processo> fifo;
 
-    Memoria(Integer algoritmo) throws IOException {
+    Memoria(Integer algoritmo, String logMenu) throws IOException {
         fifo = new LinkedList<>();
+        log = logMenu;
         memoriaList = new ArrayList<>(Collections.nCopies(1000000, null));
         lacunaList = new ArrayList<>();
         this.algSelecionado = algoritmo;
-        boolean existe = verificaGeraArquivo();
+        boolean existe = verificaGeraArquivoMemoria();
+        verificaGeraArquivoLog();
         if (!existe) {
             preencheMetadeDoArquivo();
         }
@@ -66,6 +71,7 @@ public class Memoria {
         brProcessoArq2 = new BufferedReader(new FileReader(CAMINHO + NOME_ARQUIVO_PROCESSOS2));
         nmArquivoMemoria = CAMINHO + NOME_ARQUIVO_MEMORIA;
         preencheInicioFimDaMemoria();
+        geraLog("------------");
         System.out.println("------------");
         while ((linha = brProcessoArq1.readLine()) != null) {
             String[] data = linha.split(divisor);
@@ -75,13 +81,16 @@ public class Memoria {
                 Posicao p = new Posicao(processo.getPid());
                 memoriaList.set(i, p);
             }
-            System.out.println("MEMORIA ALOCADA PARA O PROCESSO " + processo.getPid()
-                    + " - INICIO:" + (processo.getPosInicio() + 1) + " | FIM:" + (processo.getPosFim() + 1));
+            String msg = "MEMORIA ALOCADA PARA O PROCESSO " + processo.getPid()
+                    + " - INICIO:" + (processo.getPosInicio() + 1) + " | FIM:" + (processo.getPosFim() + 1);
+            geraLog(msg);
+            System.out.println(msg);
             inicio = processo.getPosFim() + 1;
             verificaProcesso(data, processo);
+            geraLog("------------");
             System.out.println("------------");
         }
-        System.out.println("ACABOU ARQUIVO 1");
+        listaLacunas();
         while ((linha = brProcessoArq2.readLine()) != null) {
             String[] data = linha.split(divisor);
             Processo processo = new Processo(data[0], Integer.valueOf(data[1]), null, null);
@@ -98,19 +107,23 @@ public class Memoria {
                 Posicao p = new Posicao(processo.getPid());
                 memoriaList.set(i, p);
             }
-            System.out.println("MEMORIA ALOCADA PARA O PROCESSO " + processo.getPid()
-                    + " - INICIO:" + (processo.getPosInicio() + 1) + " | FIM:" + (processo.getPosFim()));
+            String msg = "MEMORIA ALOCADA PARA O PROCESSO " + processo.getPid()
+                    + " - INICIO:" + (processo.getPosInicio() + 1) + " | FIM:" + (processo.getPosFim());
+            geraLog(msg);
+            System.out.println(msg);
             inicio = processo.getPosFim() + 1;
             verificaProcesso(data, processo);
+            geraLog("------------");
             System.out.println("------------");
         }
+        listaLacunas();
         String acabou = "";
 //        for (Processo processo : fifo) {
 //            System.out.println("PROCESSO " + processo.getPid() + " " + processo.getPosInicio() + " " + processo.getPosFim());
 //        }
     }
 
-    private boolean verificaGeraArquivo() throws IOException {
+    private boolean verificaGeraArquivoMemoria() throws IOException {
         file = new File(CAMINHO + NOME_ARQUIVO_MEMORIA);
         if (!file.exists()) {
             file.createNewFile();
@@ -191,23 +204,28 @@ public class Memoria {
             }
             if (data[i].equals("ES")) {
                 es = true;
-                System.out.println("ENTRADA/SAIDA DO PROCESSO " + processo.getPid() + "\nENVIADO PARA O FIM DA FILA");
+                String msg = "ENTRADA/SAIDA DO PROCESSO " + processo.getPid() + "\nENVIADO PARA O FIM DA FILA";
+                geraLog(msg);
+                System.out.println(msg);
             } else if (data[i].startsWith("sw")) {
                 String[] instrucao = data[i].split(",");
                 String[] palavra = instrucao[1].split("");
                 int pos = Integer.valueOf(instrucao[2]) - 1;
                 if ((processo.getPosInicio() + pos + 3) > processo.getPosFim()) {
-                    //ACESSO ILEGAL TO DO
-                    System.out.println("ACESSO ILEGAL DO PROCESSO " + processo.getPid()
-                            + " NA POSICAO " + (processo.getPosInicio() + pos + 1) + " LACUNA DE "
-                            + processo.getQtMem() + "bits\nPROCESSO ENCERRADO");
+                    String msg = "ACESSO ILEGAL DO PROCESSO " + processo.getPid()
+                            + " NA POSICAO " + (processo.getPosInicio() + pos + 1) + "\nLACUNA DE "
+                            + processo.getQtMem() + "bits\nPROCESSO ENCERRADO";
+                    geraLog(msg);
+                    System.out.println(msg);
                     percorreAndPreecheArquivoByFgLacuna(processo, true, 0, null);
                     break;
                 } else {
                     percorreAndPreecheArquivoByFgLacuna(processo, false, pos, palavra);
-                    System.out.println("STOREWORD DO PROCESSO " + processo.getPid()
+                    String msg = "STOREWORD DO PROCESSO " + processo.getPid()
                             + " DA PALAVRA " + instrucao[1] + " NA POSICAO "
-                            + (processo.getPosInicio() + pos + 1));
+                            + (processo.getPosInicio() + pos + 1);
+                    geraLog(msg);
+                    System.out.println(msg);
                 }
 
             } else if (data[i].startsWith("lw")) {
@@ -217,13 +235,17 @@ public class Memoria {
                 carregaVariaveisParaLeituraAndEscrita();
                 String valorNaPosicao = memoriaList.get(posicaoNoArq).getValue();
                 String valorNaPosicaoNoArq = String.valueOf(sb.charAt(posicaoNoArq));
-                System.out.println("LOADWORD DO PROCESSO " + processo.getPid()
-                        + " DA POSICAO " + posicaoNoArq);
+                String msg = "LOADWORD DO PROCESSO " + processo.getPid()
+                        + " DA POSICAO " + posicaoNoArq;
+                geraLog(msg);
+                System.out.println(msg);
 
             }
             if (i == (data.length - 1) && !es) {
-                System.out.println("PROCESSO ENCERRADO " + processo.getPid()
-                        + "\nLACUNA DE " + processo.getQtMem() + "bits");
+                String msg = "PROCESSO ENCERRADO " + processo.getPid()
+                        + "\nLACUNA DE " + processo.getQtMem() + "bits";
+                geraLog(msg);
+                System.out.println(msg);
                 percorreAndPreecheArquivoByFgLacuna(processo, true, 0, null);
                 break;
             }
@@ -234,33 +256,107 @@ public class Memoria {
     }
 
     private Processo bestFit(Processo processo) {
+        Integer encontrouPos = null;
+        Integer encontrouQtd = null;
+        for (int i = 0; i < lacunaList.size(); i++) {
+            if (lacunaList.get(i) != null && lacunaList.get(i).getQtd() >= processo.getQtMem() && encontrouPos == null) {
+                encontrouPos = i;
+                encontrouQtd = lacunaList.get(i).getQtd();
+            } else if (lacunaList.get(i) != null && lacunaList.get(i).getQtd() >= processo.getQtMem()
+                    && lacunaList.get(i).getQtd() < encontrouQtd) {
+                encontrouPos = i;
+                encontrouQtd = lacunaList.get(i).getQtd();
+            }
+        }
+        processo = atualizaProcessoAndLacunaLista(processo, encontrouPos);
         return processo;
     }
 
     private Processo firstFit(Processo processo) {
         for (int i = 0; i < lacunaList.size(); i++) {
             if (lacunaList.get(i) != null && lacunaList.get(i).getQtd() >= processo.getQtMem()) {
-                processo.setPosInicio(lacunaList.get(i).getPosInicio());
-                processo.setPosFim(processo.getPosInicio() + processo.getQtMem());
-                if (lacunaList.get(i).getQtd() > processo.getQtMem()) {
-                    lacunaList.get(i).setPosInicio(processo.getPosFim());
-                    lacunaList.get(i).setQtd(lacunaList.get(i).getQtd() - processo.getQtMem());
-                } else {
-                    lacunaList.remove(i);
-                }
+                processo = atualizaProcessoAndLacunaLista(processo, i);
                 return processo;
             }
-
         }
         return processo;
     }
 
     private Processo worstFit(Processo processo) {
+        Integer encontrouPos = null;
+        Integer encontrouQtd = null;
+        for (int i = 0; i < lacunaList.size(); i++) {
+            if (lacunaList.get(i) != null && lacunaList.get(i).getQtd() >= processo.getQtMem() && encontrouPos == null) {
+                encontrouPos = i;
+                encontrouQtd = lacunaList.get(i).getQtd();
+            } else if (lacunaList.get(i) != null && lacunaList.get(i).getQtd() >= processo.getQtMem()
+                    && lacunaList.get(i).getQtd() > encontrouQtd) {
+                encontrouPos = i;
+                encontrouQtd = lacunaList.get(i).getQtd();
+            }
+        }
+        processo = atualizaProcessoAndLacunaLista(processo, encontrouPos);
         return processo;
     }
 
     private Processo circularFit(Processo processo) {
+        int inicio = 0;
+        if (lacunaPos != null) {
+            inicio = lacunaPos;
+        }
+        for (int i = inicio; i < lacunaList.size(); i++) {
+            if (lacunaList.get(i) != null && lacunaList.get(i).getQtd() >= processo.getQtMem()) {
+                processo = atualizaProcessoAndLacunaLista(processo, i);
+                lacunaPos = i;
+                return processo;
+            }
+        }
         return processo;
+    }
+
+    private Processo atualizaProcessoAndLacunaLista(Processo processo, Integer i) {
+        processo.setPosInicio(lacunaList.get(i).getPosInicio());
+        processo.setPosFim(processo.getPosInicio() + processo.getQtMem());
+        if (lacunaList.get(i).getQtd() > processo.getQtMem()) {
+            lacunaList.get(i).setPosInicio(processo.getPosFim());
+            lacunaList.get(i).setQtd(lacunaList.get(i).getQtd() - processo.getQtMem());
+        } else {
+            lacunaList.set(i, null);
+        }
+        return processo;
+    }
+
+    private void listaLacunas() throws IOException {
+        String msg = "LACUNAS";
+        geraLog(msg);
+        System.out.println(msg);
+        for (Lacuna lacuna : lacunaList) {
+            if (lacuna != null) {
+                msg = "LACUNA DE " + lacuna.getQtd() + "bits | INICIO: "
+                        + (lacuna.getPosInicio() + 1) + " FIM " + (lacuna.getPosfim() + 1);
+                geraLog(msg);
+                System.out.println(msg);
+            }
+        }
+        geraLog("------------");
+        System.out.println("------------");
+    }
+
+    private void verificaGeraArquivoLog() throws IOException {
+        file = new File(CAMINHO + NOME_ARQUIVO_LOG);
+        if (file.exists()) {
+            file.delete();
+        }
+        file.createNewFile();
+    }
+
+    private void geraLog(String msg) throws IOException {
+        log += msg + System.lineSeparator();
+        file = new File(CAMINHO + NOME_ARQUIVO_LOG);
+        FileWriter fw = new FileWriter(file.getAbsoluteFile());
+        BufferedWriter bw = new BufferedWriter(fw);
+        bw.write(log);
+        bw.close();
     }
 
 }
