@@ -12,10 +12,6 @@ import java.util.Scanner;
  * @author Anderson Rodrigues
  */
 public class TrabalhoSisop {
-
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String[] args) {
         try {
             String console = "Escolha o Algoritmo de Gerenciamento de Partições: " + System.lineSeparator()
@@ -36,5 +32,5 @@ public class TrabalhoSisop {
             e.printStackTrace();
         }
     }
-
 }
+

@@ -117,10 +117,6 @@ public class Memoria {
             System.out.println("------------");
         }
         listaLacunas();
-        String acabou = "";
-//        for (Processo processo : fifo) {
-//            System.out.println("PROCESSO " + processo.getPid() + " " + processo.getPosInicio() + " " + processo.getPosFim());
-//        }
     }
 
     private boolean verificaGeraArquivoMemoria() throws IOException {
