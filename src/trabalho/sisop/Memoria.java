@@ -129,6 +129,7 @@ public class Memoria {
     }
 
     private void preencheMetadeDoArquivo() throws IOException {
+        file = new File(CAMINHO + NOME_ARQUIVO_MEMORIA);
         FileWriter fw = new FileWriter(file.getAbsoluteFile());
         BufferedWriter bw = new BufferedWriter(fw);
         String content = geraDados();
@@ -139,7 +140,7 @@ public class Memoria {
     private String geraDados() {
         String data = "";
         for (int i = 1; i <= 1000000; i++) {
-            data += i < 500000 ? "x" : " ";
+            data += i <= 500000 ? "x" : " ";
         }
         return data;
     }
