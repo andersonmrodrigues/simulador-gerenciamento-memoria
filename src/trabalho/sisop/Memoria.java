@@ -18,10 +18,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-/**
- *
- * @author Anderson Rodrigues
- */
 public class Memoria {
 
     private static final String NOME_ARQUIVO_MEMORIA = "memoria.txt";
@@ -75,7 +71,7 @@ public class Memoria {
         System.out.println("------------");
         while ((linha = brProcessoArq1.readLine()) != null) {
             String[] data = linha.split(divisor);
-            Integer posFim = inicio + Integer.valueOf(data[1]) - 1;
+            Integer posFim = inicio + Integer.valueOf(data[1]) - 1; // INICIO + (QTD ESPAÇO - 1) = PRA SABER ONDE ACABA O PROC
             Processo processo = new Processo(data[0], Integer.valueOf(data[1]), inicio, posFim);
             for (int i = inicio; i <= processo.getPosFim(); i++) {
                 Posicao p = new Posicao(processo.getPid());

@@ -5,10 +5,6 @@
  */
 package trabalho.sisop;
 
-/**
- *
- * @author Anderson Rodrigues
- */
 public class Lacuna {
 
     private Integer qtd;

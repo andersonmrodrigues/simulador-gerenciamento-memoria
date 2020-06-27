@@ -6,11 +6,7 @@
 package trabalho.sisop;
 
 import java.util.Scanner;
-
-/**
- *
- * @author Anderson Rodrigues
- */
+ 
 public class TrabalhoSisop {
     public static void main(String[] args) {
         try {
